@@ -1,4 +1,4 @@
-const { FlatCompat } = require("@eslint/eslintrc");
+import { FlatCompat } from "@eslint/eslintrc";
 
 // Initialize FlatCompat with the required parameter
 const compat = new FlatCompat({
@@ -83,5 +83,14 @@ module.exports = [
       ],
     },
     ignorePatterns: ["node_modules/", ".next/"],
+    "settings": {
+  "import/resolver": {
+    "alias": [
+        ["@/components", "./src/components"],
+        ["@/classes", "./src/classes"]
+    ]
+  }
+}
+
   },
 ];
