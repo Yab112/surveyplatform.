@@ -1,31 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import {SurveyQuestion} from "../../types/survey"
+
+const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { title } = body;
-    if (!title)
+
+    if (!title) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
+    }
 
     const geminiApiKey = process.env.GEMINI_API_KEY;
-    console.log("geminiApiKey--------------->", geminiApiKey);
-
     const geminiUrl =
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+
+    const prompt = `
+      Generate five engaging survey questions based on the topic: "${title}".
+      Each question should follow this JSON format:
+      {
+        "question": "Actual question text",
+        "typeresponse": "range" or "select" or "comment",
+        "options": ["option1", "option2"] (only if typeresponse is "select")
+      }
+      Do NOT include any extra text, just return a valid JSON array.
+    `;
 
     const response = await fetch(`${geminiUrl}?key=${geminiApiKey}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: `Generate five engaging survey questions based on the topic: ${title}`,
-              },
-            ],
-          },
-        ],
+        contents: [{ parts: [{ text: prompt }] }],
       }),
     });
 
@@ -37,20 +44,50 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
-    
-    // Extract the generated text correctly
-    const generatedText = data.candidates[0].content.parts[0].text;
 
-    // Process the generated text
-    const questions = generatedText
-      .trim() // Trim whitespace
-      .split("\n") // Split by newlines
-      .filter((q: string) => q.length > 0); // Filter out empty lines
-    return NextResponse.json({ questions }, { status: 200 });
+    // Parse the AI response into structured JSON
+    let questions: SurveyQuestion[];
+    try {
+      questions = JSON.parse(data.candidates[0].content.parts[0].text);
+      if (!Array.isArray(questions)) throw new Error("Invalid JSON format");
+
+      // Validate questions
+      questions.forEach((q) => {
+        if (!q.question || !q.typeresponse) {
+          throw new Error("Invalid question format");
+        }
+        if (q.typeresponse === "select" && !Array.isArray(q.options)) {
+          throw new Error("Missing or invalid options for 'select' question");
+        }
+      });
+    } catch (err) {
+      console.error("Error parsing AI response:", err);
+      return NextResponse.json(
+        { error: "Invalid response from AI" },
+        { status: 500 }
+      );
+    }
+
+    // **Save to Database**
+    const newSurvey = await prisma.survey.create({
+      data: {
+        title,
+        questions: {
+          create: questions.map((q) => ({
+            question: q.question,
+            typeresponse: q.typeresponse,
+            options: q.options || [],
+          })),
+        },
+      },
+      include: { questions: true },
+    });
+
+    return NextResponse.json({ survey: newSurvey }, { status: 201 });
   } catch (error) {
-    console.error("Error generating questions:", error);
+    console.error("Error generating survey:", error);
     return NextResponse.json(
-      { error: "AI Question Generation Failed" },
+      { error: "Survey generation failed" },
       { status: 500 }
     );
   }

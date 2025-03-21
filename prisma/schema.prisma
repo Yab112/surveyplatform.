@@ -10,15 +10,24 @@ datasource db {
 model Survey {
   id        String     @id @default(auto()) @map("_id") @db.ObjectId
   title     String
-  questions String[]
+  questions Question[] // Relating to the Question model
   responses Response[]
   createdAt DateTime   @default(now())
+}
+
+model Question {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  surveyId     String   @db.ObjectId
+  survey       Survey   @relation(fields: [surveyId], references: [id])
+  question     String
+  typeresponse String  // "range", "select", etc.
+  options      String[] // Always an array (empty if not used)
 }
 
 model Response {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   surveyId  String   @db.ObjectId
   survey    Survey   @relation(fields: [surveyId], references: [id])
-  answers   String[]
+  answers   String[] // Stores user answers
   createdAt DateTime @default(now())
 }

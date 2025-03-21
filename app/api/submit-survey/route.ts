@@ -3,7 +3,7 @@ import prisma from "../../lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json(); // Use `await req.json()` instead of `req.body`
+    const body = await req.json(); 
     const { title, questions, responses } = body;
 
     if (!title || !questions || !responses || !Array.isArray(responses)) {

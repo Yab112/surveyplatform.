@@ -12,4 +12,12 @@ export interface Survey {
     answers: string[];
     createdAt: Date;
   }
+
+
+  export interface SurveyQuestion {
+    question: string;
+    typeresponse: "range" | "select";
+    options?: string[];
+  }
+  
   
