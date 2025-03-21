@@ -16,8 +16,7 @@ export interface Survey {
 
   export interface SurveyQuestion {
     question: string;
-    typeresponse: "range" | "select";
+    typeresponse: "range" | "select" | "answer";
     options?: string[];
   }
-  
   

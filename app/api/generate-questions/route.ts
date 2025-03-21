@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import {SurveyQuestion} from "../../types/survey"
+import { SurveyQuestion } from "@/app/types/survey";
+import { Geminiprompt, geminiUrl} from "@/app/lib/constat";
 
 const prisma = new PrismaClient();
+
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,19 +17,8 @@ export async function POST(req: NextRequest) {
     }
 
     const geminiApiKey = process.env.GEMINI_API_KEY;
-    const geminiUrl =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
-    const prompt = `
-      Generate five engaging survey questions based on the topic: "${title}".
-      Each question should follow this JSON format:
-      {
-        "question": "Actual question text",
-        "typeresponse": "range" or "select" or "comment",
-        "options": ["option1", "option2"] (only if typeresponse is "select")
-      }
-      Do NOT include any extra text, just return a valid JSON array.
-    `;
+    const prompt = Geminiprompt(title)
 
     const response = await fetch(`${geminiUrl}?key=${geminiApiKey}`, {
       method: "POST",
@@ -45,10 +37,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Parse the AI response into structured JSON
+    //  Extract text response and remove Markdown code blocks
+    let rawText = data.candidates[0].content.parts[0].text.trim();
+    if (rawText.startsWith("```json")) {
+      rawText = rawText.replace(/```json|```/g, "").trim();
+    }
+
+    // Parse JSON safely
     let questions: SurveyQuestion[];
     try {
-      questions = JSON.parse(data.candidates[0].content.parts[0].text);
+      questions = JSON.parse(rawText);
       if (!Array.isArray(questions)) throw new Error("Invalid JSON format");
 
       // Validate questions
