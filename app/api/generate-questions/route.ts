@@ -4,9 +4,12 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { title } = body;
-    if (!title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
+    if (!title)
+      return NextResponse.json({ error: "Title is required" }, { status: 400 });
 
     const geminiApiKey = process.env.GEMINI_API_KEY;
+    console.log("geminiApiKey--------------->", geminiApiKey);
+
     const geminiUrl =
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
@@ -14,40 +17,41 @@ export async function POST(req: NextRequest) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        prompt: { text: `Generate five engaging survey questions based on the topic: ${title}` },
+        contents: [
+          {
+            parts: [
+              {
+                text: `Generate five engaging survey questions based on the topic: ${title}`,
+              },
+            ],
+          },
+        ],
       }),
-    }); 
+    });
 
     const data = await response.json();
 
-
-    
     if (!data.candidates || data.candidates.length === 0) {
-      return NextResponse.json({ error: "Failed to generate questions" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to generate questions" },
+        { status: 500 }
+      );
     }
+    
+    // Extract the generated text correctly
+    const generatedText = data.candidates[0].content.parts[0].text;
 
-    const generatedText = data.candidates[0].output;
-    const questions = generatedText.trim().split("\n").filter((q: string) => q.length > 0);
-
+    // Process the generated text
+    const questions = generatedText
+      .trim() // Trim whitespace
+      .split("\n") // Split by newlines
+      .filter((q: string) => q.length > 0); // Filter out empty lines
     return NextResponse.json({ questions }, { status: 200 });
   } catch (error) {
     console.error("Error generating questions:", error);
-    return NextResponse.json({ error: "AI Question Generation Failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "AI Question Generation Failed" },
+      { status: 500 }
+    );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
