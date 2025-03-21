@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Survey {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  questions String[]
+  responses Response[]
+  createdAt DateTime   @default(now())
+}
+
+model Response {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  surveyId  String   @db.ObjectId
+  survey    Survey   @relation(fields: [surveyId], references: [id])
+  answers   String[]
+  createdAt DateTime @default(now())
+}
