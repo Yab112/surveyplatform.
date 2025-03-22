@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { SurveyQuestion } from "@/app/types/survey";
 import { Geminiprompt, geminiUrl } from "@/app/lib/constat";
 
@@ -63,19 +63,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // **Fix Prisma create issue for MongoDB**
-    const newSurvey = await prisma.survey.create({
-      data: {
-        title,
-        questions: {
-          create: questions.map((q) => ({
-            question: q.question,
-            typeresponse: q.typeresponse,
-            options: q.options || [], // Ensure options is an array, even if empty
-          })),
-        },
+    // Use Prisma.SurveyCreateInput for type safety
+    const surveyData: Prisma.SurveyCreateInput = {
+      title,
+      questions: {
+        create: questions.map((q) => ({
+          question: q.question,
+          typeresponse: q.typeresponse,
+          options: q.options || [],
+        })),
       },
-      include: { questions: true }, // Include the created questions in the response
+    };
+
+    const newSurvey = await prisma.survey.create({
+      data: surveyData,
+      include: { questions: true },
     });
 
     return NextResponse.json({ survey: newSurvey }, { status: 201 });
