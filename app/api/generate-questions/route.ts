@@ -63,24 +63,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // **Fix Prisma create issue**
+    // **Fix Prisma create issue for MongoDB**
     const newSurvey = await prisma.survey.create({
       data: {
         title,
         questions: {
-          createMany: {
-            data: questions.map((q) => ({
-              question: q.question,
-              typeresponse: q.typeresponse,
-              options: q.options || [],
-            })),
-          },
+          create: questions.map((q) => ({
+            question: q.question,
+            typeresponse: q.typeresponse,
+            options: q.options || [], // Ensure options is an array, even if empty
+          })),
         },
       },
-      include: { questions: true },
+      include: { questions: true }, // Include the created questions in the response
     });
-    
-    
 
     return NextResponse.json({ survey: newSurvey }, { status: 201 });
   } catch (error) {
