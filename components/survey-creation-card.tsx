@@ -61,7 +61,7 @@ export function SurveyCreationCard({ onSurveyGenerated }: SurveyCreationCardProp
           </div>
         </CardContent>
         <CardFooter>
-          <Button className="w-full bg-blue-600" disabled={!surveyTitle.trim() || isGenerating} onClick={handleGenerateSurvey}>
+          <Button className="w-full bg-blue-600 hover:bg-blue-400" disabled={!surveyTitle.trim() || isGenerating} onClick={handleGenerateSurvey}>
             {isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
