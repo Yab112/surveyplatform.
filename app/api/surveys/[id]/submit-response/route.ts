@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "../../../../lib/prisma"; 
 
 export async function POST(
-  req: NextRequest,
-  context: { params: { id: string } }
+  request: Request,
+  {params}: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params;
-    const body = await req.json();
-    const { answers } = body; // Array of { questionId, answer }
+    const { id } = await params;
+    const body = await request.json();
+    const { answers } = body; 
 
     if (!answers || !Array.isArray(answers) || answers.length === 0) {
       return NextResponse.json(
