@@ -27,7 +27,7 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
 
   return (
     <motion.div
-      className={`bg-gradient-to-b from-primary/10 to-primary/5 dark:from-primary/20 dark:to-background border-r w-64 p-4 flex flex-col fixed inset-y-0 z-40 ${sidebarOpen ? "left-0" : "-left-64"} md:left-0 transition-all duration-300 ease-in-out`}
+      className={`bg-gradient-to-b from-blue-900/10 to-primary/5 dark:from-primary/20 dark:to-background border-r w-64 p-4 flex flex-col fixed inset-y-0 z-40 ${sidebarOpen ? "left-0" : "-left-64"} md:left-0 transition-all duration-300 ease-in-out`}
       initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
@@ -42,7 +42,7 @@ export function Sidebar({ sidebarOpen }: SidebarProps) {
           <div className="flex items-center space-x-4">
             <Avatar className="h-12 w-12 border-2 border-primary">
               <AvatarImage src="/placeholder.svg?height=40&width=40" alt="User" />
-              <AvatarFallback>JD</AvatarFallback>
+              <AvatarFallback>U</AvatarFallback>
             </Avatar>
             <div>
               <h3 className="font-medium">User</h3>

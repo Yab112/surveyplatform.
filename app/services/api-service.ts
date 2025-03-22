@@ -2,26 +2,27 @@ import { Survey, SurveyAnswer } from "../types/survey"
 
 // Function to generate survey questions
 export async function generateSurveyQuestions(title: string): Promise<Survey> {
-  try {
-    const response = await fetch("/api/generate-questions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ title }),
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error generating survey: ${response.statusText}`)
+    try {
+      const response = await fetch("/api/generate-questions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ title }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json(); 
+        throw new Error(`Error generating survey: ${response.statusText} - ${errorData.message}`);
+      }
+  
+      const data = await response.json();
+      return data.survey;
+    } catch (error) {
+      console.error("Error generating survey questions:", error);
+      throw new Error("Failed to generate survey questions. Please try again later.");
     }
-
-    const data = await response.json()
-    return data.survey
-  } catch (error) {
-    console.error("Error generating survey questions:", error)
-    throw error
   }
-}
 
 // Function to submit survey responses
 export async function submitSurveyResponses(
