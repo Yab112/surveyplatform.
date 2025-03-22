@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { SurveyQuestion } from "@/app/types/survey";
-import { Geminiprompt, geminiUrl} from "@/app/lib/constat";
+import { Geminiprompt, geminiUrl } from "@/app/lib/constat";
 
 const prisma = new PrismaClient();
-
-
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,8 +15,7 @@ export async function POST(req: NextRequest) {
     }
 
     const geminiApiKey = process.env.GEMINI_API_KEY;
-
-    const prompt = Geminiprompt(title)
+    const prompt = Geminiprompt(title);
 
     const response = await fetch(`${geminiUrl}?key=${geminiApiKey}`, {
       method: "POST",
@@ -37,7 +34,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    //  Extract text response and remove Markdown code blocks
+    // Extract text response and remove Markdown code blocks
     let rawText = data.candidates[0].content.parts[0].text.trim();
     if (rawText.startsWith("```json")) {
       rawText = rawText.replace(/```json|```/g, "").trim();
@@ -66,20 +63,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // **Save to Database**
+    // **Fix Prisma create issue**
     const newSurvey = await prisma.survey.create({
       data: {
         title,
         questions: {
-          create: questions.map((q) => ({
-            question: q.question,
-            typeresponse: q.typeresponse,
-            options: q.options || [],
-          })),
+          createMany: {
+            data: questions.map((q) => ({
+              question: q.question,
+              typeresponse: q.typeresponse,
+              options: q.options || [],
+            })),
+          },
         },
       },
       include: { questions: true },
     });
+    
+    
 
     return NextResponse.json({ survey: newSurvey }, { status: 201 });
   } catch (error) {
