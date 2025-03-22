@@ -9,9 +9,7 @@ export async function GET(
 
 ) {
   try {
-    const respos = await params
     const {id} = await params
-    console.log(respos)
     if (!id) {
       return NextResponse.json({ error: 'Survey ID is required' }, { status: 400 });
     }
