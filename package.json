@@ -10,8 +10,6 @@
     "lint.fix": "next lint --fix",
     "test": "jest --env=jsdom",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
-    "prisma:generate": "prisma generate",
-    "postinstall": "prisma generate"
 
   },
   "dependencies": {
